@@ -104,6 +104,17 @@ public class TaskService {
                 .toList();
     }
 
+    /**
+     * Devuelve las tareas vencidas según la regla del dominio (Task.estaVencida()).
+     * Orden: por dueDate ascendente usando TaskOrders.POR_FECHA.
+     */
+    public List<Task> vencidas() {
+        return repository.findAll().stream()
+                .filter(Task::estaVencida)
+                .sorted(TaskOrders.POR_FECHA)
+                .toList();
+    }
+
     /** Filtra las tareas por estado (?status=). '==' entre enums es seguro. */
     public List<Task> porEstado(TaskStatus status) {
         return repository.findAll().stream()

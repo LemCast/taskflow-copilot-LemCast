@@ -89,6 +89,29 @@ class TaskControllerTest {
     }
 
     @Test
+    void getOverdue_returns200AndOrdered() throws Exception {
+        // vencidas: primera más antigua, segunda más reciente (se crea el dato con dueDate explícito)
+        Task t1;
+        Task t2;
+        try {
+            t1 = new Task(7L, "Corregir bug de fechas", "desc", TaskStatus.IN_PROGRESS, Priority.MED, 1L, 1L,
+                    java.time.LocalDate.now().minusDays(2));
+            t2 = new Task(14L, "Otra vencida", "desc", TaskStatus.IN_PROGRESS, Priority.MED, 1L, 1L,
+                    java.time.LocalDate.now().minusDays(1));
+        } catch (TaskValidationException e) {
+            throw new IllegalStateException(e);
+        }
+
+        when(taskService.vencidas()).thenReturn(List.of(t1, t2));
+
+        mockMvc.perform(get("/tasks/overdue"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(7))
+                .andExpect(jsonPath("$[0].title").value("Corregir bug de fechas"));
+    }
+
+    @Test
     void getTaskPorId_existente_retorna200ConElTitulo() throws Exception {
         when(taskService.buscarPorId(1L)).thenReturn(Optional.of(tarea(1L, "Diseñar esquema de BD", TaskStatus.TODO)));
 
