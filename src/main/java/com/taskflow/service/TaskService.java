@@ -115,6 +115,17 @@ public class TaskService {
                 .toList();
     }
 
+    /**
+     * Devuelve las tareas sin responsable (assigneeId == null). Usa el predicado nombrado de ReportService
+     * y ordena por fecha usando TaskOrders.POR_FECHA (nulls al final).
+     */
+    public List<Task> sinResponsable() {
+        return repository.findAll().stream()
+                .filter(ReportService.SIN_ASIGNAR)
+                .sorted(TaskOrders.POR_FECHA)
+                .toList();
+    }
+
     /** Filtra las tareas por estado (?status=). '==' entre enums es seguro. */
     public List<Task> porEstado(TaskStatus status) {
         return repository.findAll().stream()

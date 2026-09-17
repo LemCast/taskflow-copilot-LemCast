@@ -112,6 +112,28 @@ class TaskControllerTest {
     }
 
     @Test
+    void getUnassigned_returns200AndJsonContainsIdAndNullAssignee() throws Exception {
+        Task t4;
+        Task t6;
+        try {
+            t4 = new Task(4L, "Escribir tests MockMvc", "desc", TaskStatus.TODO, Priority.MED, 1L, null,
+                    java.time.LocalDate.now().plusDays(7));
+            t6 = new Task(6L, "Publicar en la tienda", "desc", TaskStatus.TODO, Priority.MED, 1L, null,
+                    java.time.LocalDate.now().plusDays(10));
+        } catch (TaskValidationException e) {
+            throw new IllegalStateException(e);
+        }
+
+        when(taskService.sinResponsable()).thenReturn(List.of(t4, t6));
+
+        mockMvc.perform(get("/tasks/unassigned"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(4))
+                .andExpect(jsonPath("$[0].assigneeId").value(org.hamcrest.Matchers.nullValue()));
+    }
+
+    @Test
     void getTaskPorId_existente_retorna200ConElTitulo() throws Exception {
         when(taskService.buscarPorId(1L)).thenReturn(Optional.of(tarea(1L, "Diseñar esquema de BD", TaskStatus.TODO)));
 

@@ -191,6 +191,46 @@ class TaskServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("SinResponsable")
+    class SinResponsable {
+
+        @Test
+        void sinResponsable_filtraYOrdenaPorFecha() {
+            try {
+                // Construir datos: en este orden el repositorio devuelve 4 tareas (mezcla de asignadas y no):
+                Task t10 = new Task(100L, "SinRespConFecha10", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        java.time.LocalDate.now().plusDays(10));
+                Task conResp = new Task(101L, "ConResp", "d", TaskStatus.TODO, Priority.MED, PROYECTO, 5L,
+                        java.time.LocalDate.now().plusDays(5));
+                Task sinFecha = new Task(102L, "SinFecha", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        null);
+                Task t2 = new Task(103L, "SinRespConFecha2", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        java.time.LocalDate.now().plusDays(2));
+
+                when(repository.findAll()).thenReturn(java.util.List.of(t10, conResp, sinFecha, t2));
+
+                java.util.List<Task> resultado = service.sinResponsable();
+
+                // Debe contener solo los tres sin responsable, ordenados: 2 días, 10 días, sin fecha.
+                java.util.List<Long> ids = resultado.stream().map(Task::getId).toList();
+                org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of(103L, 100L, 102L), ids);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Test
+        void sinResponsable_siNoHayDevuelveVacio() {
+            Task con1 = tarea(1L, "Con1", 1L);
+            Task con2 = tarea(2L, "Con2", 2L);
+            when(repository.findAll()).thenReturn(java.util.List.of(con1, con2));
+
+            java.util.List<Task> resultado = service.sinResponsable();
+            org.junit.jupiter.api.Assertions.assertTrue(resultado.isEmpty());
+        }
+    }
+
     /** Fabrica una Task de rehidratación REAL (dato, no mock). assigneeId null = sin responsable. */
     private Task tarea(Long id, String title, Long assigneeId) {
         try {
