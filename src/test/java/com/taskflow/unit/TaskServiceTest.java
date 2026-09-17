@@ -157,6 +157,80 @@ class TaskServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("vencidas")
+    class Vencidas {
+
+        @Test
+        void vencidas_devuelveSoloVencidasYOrdenadas() {
+            try {
+                // Tarea vencida hace 2 días
+                Task t1 = new Task(10L, "Antigua", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 1L,
+                        java.time.LocalDate.now().minusDays(2));
+                // Tarea vencida ayer
+                Task t2 = new Task(11L, "Reciente", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 1L,
+                        java.time.LocalDate.now().minusDays(1));
+                // Tarea DONE con fecha pasada -> NO aparece
+                Task done = new Task(12L, "Hecha", "d", TaskStatus.DONE, Priority.MED, PROYECTO, 1L,
+                        java.time.LocalDate.now().minusDays(3));
+                // Tarea sin dueDate -> NO aparece
+                Task sinFecha = new Task(13L, "SinFecha", "d", TaskStatus.TODO, Priority.MED, PROYECTO, 1L,
+                        null);
+
+                when(repository.findAll()).thenReturn(java.util.List.of(t2, done, sinFecha, t1));
+
+                java.util.List<Task> resultado = service.vencidas();
+
+                // Solo t1 y t2, y orden asc por dueDate -> t1 (más antigua) antes que t2
+                org.junit.jupiter.api.Assertions.assertEquals(2, resultado.size());
+                org.junit.jupiter.api.Assertions.assertEquals(10L, resultado.get(0).getId());
+                org.junit.jupiter.api.Assertions.assertEquals(11L, resultado.get(1).getId());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("SinResponsable")
+    class SinResponsable {
+
+        @Test
+        void sinResponsable_filtraYOrdenaPorFecha() {
+            try {
+                // Construir datos: en este orden el repositorio devuelve 4 tareas (mezcla de asignadas y no):
+                Task t10 = new Task(100L, "SinRespConFecha10", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        java.time.LocalDate.now().plusDays(10));
+                Task conResp = new Task(101L, "ConResp", "d", TaskStatus.TODO, Priority.MED, PROYECTO, 5L,
+                        java.time.LocalDate.now().plusDays(5));
+                Task sinFecha = new Task(102L, "SinFecha", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        null);
+                Task t2 = new Task(103L, "SinRespConFecha2", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null,
+                        java.time.LocalDate.now().plusDays(2));
+
+                when(repository.findAll()).thenReturn(java.util.List.of(t10, conResp, sinFecha, t2));
+
+                java.util.List<Task> resultado = service.sinResponsable();
+
+                // Debe contener solo los tres sin responsable, ordenados: 2 días, 10 días, sin fecha.
+                java.util.List<Long> ids = resultado.stream().map(Task::getId).toList();
+                org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of(103L, 100L, 102L), ids);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Test
+        void sinResponsable_siNoHayDevuelveVacio() {
+            Task con1 = tarea(1L, "Con1", 1L);
+            Task con2 = tarea(2L, "Con2", 2L);
+            when(repository.findAll()).thenReturn(java.util.List.of(con1, con2));
+
+            java.util.List<Task> resultado = service.sinResponsable();
+            org.junit.jupiter.api.Assertions.assertTrue(resultado.isEmpty());
+        }
+    }
+
     /** Fabrica una Task de rehidratación REAL (dato, no mock). assigneeId null = sin responsable. */
     private Task tarea(Long id, String title, Long assigneeId) {
         try {
