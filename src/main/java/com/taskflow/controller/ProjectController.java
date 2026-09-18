@@ -29,6 +29,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
+import com.taskflow.dto.ProjectSummaryResponse;
+
 /**
  * ProjectController — la puerta HTTP de los proyectos. HOY (integrador) crece a CRUD completo, en
  * DTOs (ProjectRequest / ProjectResponse); las tareas de un proyecto salen como TaskResponse.
@@ -84,6 +86,18 @@ public class ProjectController {
             tareas = tareas.stream().filter(t -> t.getStatus() == status).toList();
         }
         return tareas.stream().map(TaskMapper::aResponse).toList();
+    }
+
+    /**
+     * GET /projects/{id}/summary — resumen del proyecto con conteos por estado y vencidas.
+     */
+    @Operation(summary = "Resumen del proyecto",
+            description = "Devuelve conteos por estado (TODO, IN_PROGRESS, DONE) y cuántas tareas están vencidas.")
+    @GetMapping("/projects/{id}/summary")
+    public ProjectSummaryResponse getProjectSummary(@PathVariable("id") Long id) {
+        Project proyecto = projectService.buscarPorId(id)
+                .orElseThrow(() -> new ProjectNotFoundException(id));
+        return projectService.resumenDe(proyecto);
     }
 
     /**

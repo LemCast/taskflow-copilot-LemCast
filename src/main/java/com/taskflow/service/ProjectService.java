@@ -63,6 +63,31 @@ public class ProjectService {
     }
 
     /**
+     * Devuelve un resumen del proyecto: conteos por estado y cuántas están vencidas. No hace HTTP
+     * ni lanzamientos de excepción por "no existe"; el controller debe resolver el 404 con
+     * buscarPorId(id). Reutiliza Task.estaVencida() para el criterio de vencida.
+     */
+    public com.taskflow.dto.ProjectSummaryResponse resumenDe(Project proyecto) {
+        Long projectId = proyecto.getId();
+        List<Task> tareas = tareasDe(projectId);
+        int total = tareas.size();
+        java.util.Map<String, Integer> byStatus = new java.util.EnumSet[]{} instanceof Object ? new java.util.HashMap<>() : new java.util.HashMap<>();
+        // Inicializar las tres claves con 0
+        byStatus.put(com.taskflow.model.TaskStatus.TODO.name(), 0);
+        byStatus.put(com.taskflow.model.TaskStatus.IN_PROGRESS.name(), 0);
+        byStatus.put(com.taskflow.model.TaskStatus.DONE.name(), 0);
+        int overdue = 0;
+        for (Task t : tareas) {
+            String key = t.getStatus().name();
+            byStatus.put(key, byStatus.getOrDefault(key, 0) + 1);
+            if (t.estaVencida()) {
+                overdue++;
+            }
+        }
+        return new com.taskflow.dto.ProjectSummaryResponse(projectId, proyecto.getName(), total, byStatus, overdue);
+    }
+
+    /**
      * Crea un proyecto (POST): el request trae name y description; el ownerId ya NO es una constante
      * (murió el 1L fijo de D3) — se resuelve del USERNAME AUTENTICADO (el que puso el JWT en el
      * Authentication). El dueño no lo decide el cliente ni una semilla: es QUIEN llama. createdAt = hoy;
