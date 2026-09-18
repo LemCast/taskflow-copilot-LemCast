@@ -1,21 +1,15 @@
 Repositorio: C:\Users\aaron\taskflow-copilot-LemCast
 URL de la app: http://127.0.0.1:8080
 Empaquetando con Maven (mvn -q package -DskipTests), tarda unos segundos...
-App arrancando (PID 29396). Esperando a que /info responda...
+App arrancando (PID 29104). Esperando a que /info responda...
 App lista en 5 s.
 [OK]    GET /tasks/overdue devuelve solo la tarea 7
 [OK]    GET /tasks/unassigned devuelve las tareas 4 y 6
-[FALLA] GET /projects/1/summary
-        esperaba: HTTP 200 projectId=1 totalTasks=5 TODO=3 IN_PROGRESS=1 DONE=1 overdue=0 projectNameOk=True
-        obtuve:   HTTP 404 
-[FALLA] GET /projects/2/summary
-        esperaba: HTTP 200 projectId=2 totalTasks=4 TODO=1 IN_PROGRESS=2 DONE=1 overdue=1 projectNameOk=True
-        obtuve:   HTTP 404 
-[FALLA] GET /projects/3/summary
-        esperaba: HTTP 200 projectId=3 totalTasks=0 TODO=0 IN_PROGRESS=0 DONE=0 overdue=0 projectNameOk=True
-        obtuve:   HTTP 404 
+[OK]    GET /projects/1/summary
+[OK]    GET /projects/2/summary
+[OK]    GET /projects/3/summary
 [OK]    GET /projects/99/summary responde 404
 [OK]    GET /projects/1/summary sin token responde 401
-App detenida (PID 29396).
+App detenida (PID 29104).
 [OK]    App apagada: el puerto 8080 ya no responde
-RESULTADO: 3 de 8 con FALLA. Logs de la app: C:\Users\aaron\taskflow-copilot-LemCast\target\verificar-8080-app.log
+RESULTADO: 8/8 OK
